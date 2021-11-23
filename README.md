@@ -22,7 +22,6 @@ type MyApplication struct {
 }
 
 func main() {
-
 	asab.AddConfigDefaults("general", map[string]string{
 		"config_file": "./etc/my.conf",
 	})
