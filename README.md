@@ -1,2 +1,1 @@
-# go-asab
-Asynchronous Server App Boilerplate (ASAB) is a microservice platform for Go.
+# Asynchronous Server App Boilerplate (ASAB) is a microservice platform for Go
