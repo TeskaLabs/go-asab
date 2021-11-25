@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/teskalabs/go-asab/asab"
 )
 
@@ -18,5 +20,7 @@ func main() {
 	MyApp.Initialize()
 	defer MyApp.Finalize()
 
+	fmt.Println("Hello world!")
+	fmt.Println("Press Ctrl-C for an exit.")
 	MyApp.Run()
 }
