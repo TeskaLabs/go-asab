@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/teskalabs/go-asab/asab"
 )
@@ -21,6 +22,12 @@ func main() {
 	defer MyApp.Finalize()
 
 	fmt.Println("Hello world!")
-	fmt.Println("Press Ctrl-C for an exit.")
+
+	// Schedule the application stop
+	go func() {
+		time.Sleep(3 * time.Second)
+		MyApp.Stop()
+	}()
+
 	MyApp.Run()
 }

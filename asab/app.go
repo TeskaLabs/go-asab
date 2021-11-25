@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -108,6 +109,12 @@ func (app *Application) Run() {
 		}
 
 	}
+}
+
+// Ask the application to stop and exit
+func (app *Application) Stop() {
+	// Simulate the interrupt signal
+	app._InterruptSignal <- syscall.SIGINT
 }
 
 // Service registry
