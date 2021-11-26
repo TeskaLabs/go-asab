@@ -40,3 +40,7 @@ func main() {
 	MyApp.Run()
 }
 ```
+
+Check [examples](./examples) folder for more information.
+
+
