@@ -1,6 +1,7 @@
 package asab
 
 import (
+	"fmt"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -17,8 +18,10 @@ func init() {
 }
 
 type Application struct {
-	_InterruptSignal chan os.Signal
-	ReturnCode       int
+	_StopSignalC   chan os.Signal
+	_PubSubSignalC chan os.Signal
+
+	ReturnCode int
 
 	// Periodic 1-second ticker
 	_Ticker *time.Ticker
@@ -36,7 +39,8 @@ type Application struct {
 func (app *Application) Initialize() {
 
 	app.Config = _LoadConfig()
-	app._InterruptSignal = make(chan os.Signal, 1)
+	app._StopSignalC = make(chan os.Signal, 1)
+	app._PubSubSignalC = make(chan os.Signal, 1)
 	app._RegisteredServices = make(map[string]ServiceI)
 	app.Hostname, _ = os.Hostname()
 	app.ReturnCode = 0
@@ -47,12 +51,12 @@ func (app *Application) Initialize() {
 	app.PubSub.Initialize()
 
 	// Install SIGINT handler
-	signal.Notify(app._InterruptSignal, os.Interrupt)
+	signal.Notify(app._StopSignalC, os.Interrupt)
 }
 
 func (app *Application) Finalize() {
 	// Uninstall SIGINT handler
-	signal.Stop(app._InterruptSignal)
+	signal.Stop(app._StopSignalC)
 
 	if len(app._RegisteredServices) != 0 {
 		log.Warnln("Application is exiting with registered services:")
@@ -69,10 +73,10 @@ func (app *Application) Run() {
 	for {
 		select {
 
-		// Handling of SIGING signal
-		case <-app._InterruptSignal:
+		// Handling of SIGINT signal
+		case <-app._StopSignalC:
 			println("") // To put ^C on the dedicated line
-			log.Println("Terminating.")
+			log.Println("Exiting.")
 			return
 
 		// Handling of the periodic ticking
@@ -106,15 +110,20 @@ func (app *Application) Run() {
 			if (cycle_no % 86400) == 0 {
 				app.PubSub.Publish("Application.tick/86400!")
 			}
-		}
 
+		// Publish OS signals
+		case s := <-app._PubSubSignalC:
+			msg := fmt.Sprintf("Application.signal/%s!", s.String())
+			app.PubSub.Publish(msg)
+
+		}
 	}
 }
 
 // Ask the application to stop and exit
 func (app *Application) Stop() {
 	// Simulate the interrupt signal
-	app._InterruptSignal <- syscall.SIGINT
+	app._StopSignalC <- syscall.SIGINT
 }
 
 // Service registry
@@ -135,4 +144,20 @@ func (app *Application) UnregisterService(svc ServiceI) {
 
 func (app *Application) LocateService(service_name string) ServiceI {
 	return app._RegisteredServices[service_name]
+}
+
+// Signals
+
+// When signal `signo` arrives, it will be converted into a PubSub message
+//
+// Example:
+// MyApp.SubscribeSignal(syscall.SIGHUP)
+// MyApp.PubSub.Subscribe("Application.signal/hangup!", MyApp.onSIGHUP)
+
+func (app *Application) SubscribeSignal(signo syscall.Signal) {
+	if signo == os.Interrupt {
+		// This signal is already captured in _InterruptSignal
+		return
+	}
+	signal.Notify(app._PubSubSignalC, signo)
 }
