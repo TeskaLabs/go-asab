@@ -81,39 +81,42 @@ func (app *Application) Run() {
 
 		// Handling of the periodic ticking
 		case <-app._Ticker.C:
-			app.PubSub.Publish("Application.tick!")
+			app.PubSub.Publish(PubSubMessage{Name: "Application.tick!", I: app})
 			cycle_no += 1
 			if (cycle_no % 5) == 0 {
-				app.PubSub.Publish("Application.tick/5!")
+				app.PubSub.Publish(PubSubMessage{Name: "Application.tick/5!", I: app})
 			}
 			if (cycle_no % 10) == 0 {
-				app.PubSub.Publish("Application.tick/10!")
+				app.PubSub.Publish(PubSubMessage{Name: "Application.tick/10!", I: app})
 			}
 			if (cycle_no % 60) == 0 {
-				app.PubSub.Publish("Application.tick/60!")
+				app.PubSub.Publish(PubSubMessage{Name: "Application.tick/60!", I: app})
 			}
 			if (cycle_no % 300) == 0 {
-				app.PubSub.Publish("Application.tick/300!")
+				app.PubSub.Publish(PubSubMessage{Name: "Application.tick/300!", I: app})
 			}
 			if (cycle_no % 600) == 0 {
-				app.PubSub.Publish("Application.tick/600!")
+				app.PubSub.Publish(PubSubMessage{Name: "Application.tick/600!", I: app})
 			}
 			if (cycle_no % 1800) == 0 {
-				app.PubSub.Publish("Application.tick/1800!")
+				app.PubSub.Publish(PubSubMessage{Name: "Application.tick/1800!", I: app})
 			}
 			if (cycle_no % 3600) == 0 {
-				app.PubSub.Publish("Application.tick/3600!")
+				app.PubSub.Publish(PubSubMessage{Name: "Application.tick/3600!", I: app})
 			}
 			if (cycle_no % 43200) == 0 {
-				app.PubSub.Publish("Application.tick/43200!")
+				app.PubSub.Publish(PubSubMessage{Name: "Application.tick/43200!", I: app})
 			}
 			if (cycle_no % 86400) == 0 {
-				app.PubSub.Publish("Application.tick/86400!")
+				app.PubSub.Publish(PubSubMessage{Name: "Application.tick/86400!", I: app})
 			}
 
 		// Publish OS signals
 		case s := <-app._PubSubSignalC:
-			msg := fmt.Sprintf("Application.signal/%s!", s.String())
+			msg := PubSubMessage{
+				Name: fmt.Sprintf("Application.signal/%s!", s.String()),
+				I:    app,
+			}
 			app.PubSub.Publish(msg)
 
 		}

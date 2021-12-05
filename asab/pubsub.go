@@ -6,27 +6,32 @@ import "sync"
 
 type PubSub struct {
 	_Mutex       sync.RWMutex
-	_Subscribers map[string][]func()
+	_Subscribers map[string][]func(PubSubMessage)
+}
+
+type PubSubMessage struct {
+	Name string
+	I    interface{}
 }
 
 func (ps *PubSub) Initialize() {
-	ps._Subscribers = make(map[string][]func())
+	ps._Subscribers = make(map[string][]func(PubSubMessage))
 }
 
-func (ps *PubSub) Subscribe(message_type string, callback func()) {
+func (ps *PubSub) Subscribe(message_type string, handler func(PubSubMessage)) {
 	ps._Mutex.Lock()
 	defer ps._Mutex.Unlock()
 
-	ps._Subscribers[message_type] = append(ps._Subscribers[message_type], callback)
+	ps._Subscribers[message_type] = append(ps._Subscribers[message_type], handler)
 }
 
 //TODO: func (ps *PubSub) Unsubscribe(message_type string, callback func())
 
-func (ps *PubSub) Publish(message_type string) {
+func (ps *PubSub) Publish(message PubSubMessage) {
 	ps._Mutex.Lock()
 	defer ps._Mutex.Unlock()
 
-	for _, callback := range ps._Subscribers[message_type] {
-		callback()
+	for _, handler := range ps._Subscribers[message.Name] {
+		handler(message)
 	}
 }
