@@ -1,9 +1,10 @@
 package asab
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
+	"github.com/lesismal/nbio/logging"
 	"github.com/lesismal/nbio/nbhttp"
 )
 
@@ -12,6 +13,9 @@ type WebService struct {
 
 	Router *mux.Router
 	Server *nbhttp.Server
+
+	// Logging
+	logger *log.Logger
 }
 
 func init() {
@@ -27,6 +31,9 @@ func (svc *WebService) Initialize(app *Application) {
 	if err != nil {
 		panic(err)
 	}
+
+	logging.SetLogger(svc)
+	svc.logger = log.StandardLogger()
 
 	svc.Router = mux.NewRouter()
 
@@ -46,4 +53,47 @@ func (svc *WebService) Initialize(app *Application) {
 func (svc *WebService) Finalize() {
 	svc.Server.Stop()
 	svc.Service.Finalize()
+}
+
+// Logging
+
+func (svc *WebService) SetLevel(lvl int) {
+	switch lvl {
+	case logging.LevelAll:
+		svc.logger.SetLevel(log.TraceLevel)
+
+	case logging.LevelDebug:
+		svc.logger.SetLevel(log.DebugLevel)
+
+	case logging.LevelInfo:
+		svc.logger.SetLevel(log.InfoLevel)
+
+	case logging.LevelWarn:
+		svc.logger.SetLevel(log.WarnLevel)
+
+	case logging.LevelError:
+		svc.logger.SetLevel(log.ErrorLevel)
+
+	case logging.LevelNone:
+		svc.logger.SetLevel(log.FatalLevel)
+
+	default:
+		log.Warnf("Invalid log level: %v", lvl)
+	}
+}
+
+func (svc *WebService) Debug(format string, v ...interface{}) {
+	svc.logger.Debugf("WebService "+format, v...)
+}
+
+func (svc *WebService) Info(format string, v ...interface{}) {
+	svc.logger.Infof("WebService "+format, v...)
+}
+
+func (svc *WebService) Warn(format string, v ...interface{}) {
+	svc.logger.Warnf("WebService "+format, v...)
+}
+
+func (svc *WebService) Error(format string, v ...interface{}) {
+	svc.logger.Errorf("WebService "+format, v...)
 }
